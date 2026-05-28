@@ -7,6 +7,7 @@
   --primary: #0f172a;
   --primary-text: #ffffff;
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --warning: #b45309;
 }
 
 * { box-sizing: border-box; }
@@ -138,6 +139,10 @@ input, select {
 input:disabled {
   background: #f1f5f9;
   color: #94a3b8;
+}
+
+input:invalid {
+  border-color: var(--warning);
 }
 
 .highlight {

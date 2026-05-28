@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.riksbank.se; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests;">
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
   <title>BMW iX1 laddkalkyl Europa</title>
   <meta name="description" content="BMW iX1 laddkalkyl för svenska ägare som kör i Europa. Räkna om laddpris från europeiska valutor till SEK och beräkna total laddkostnad samt kostnad per 100 km." />
   <link rel="stylesheet" href="style.css" />
@@ -16,8 +20,8 @@
         <p>Välj valuta, ange laddpris per kWh, SoC och förbrukning. Kalkylen räknar ut total laddkostnad, pris per 100 km och pris per mil.</p>
       </div>
       <div class="actions">
-        <button id="fetchRatesBtn" class="primary">Hämta kurser</button>
-        <button id="resetBtn" class="secondary">Återställ</button>
+        <button id="fetchRatesBtn" class="primary" type="button">Hämta kurser</button>
+        <button id="resetBtn" class="secondary" type="button">Återställ</button>
       </div>
     </header>
 
@@ -45,7 +49,7 @@
           </label>
           <label>
             Pris per kWh
-            <input id="pricePerKwh" inputmode="decimal" />
+            <input id="pricePerKwh" type="number" min="0" max="100" step="0.01" inputmode="decimal" />
           </label>
         </div>
         <div class="highlight">
@@ -60,19 +64,19 @@
         <div class="form-grid">
           <label>
             Nuvarande SoC %
-            <input id="fromSoc" inputmode="decimal" />
+            <input id="fromSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
           </label>
           <label>
             Ladda till %
-            <input id="toSoc" inputmode="decimal" />
+            <input id="toSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
           </label>
           <label>
             Användbart batteri kWh
-            <input id="usableBatteryKwh" inputmode="decimal" />
+            <input id="usableBatteryKwh" type="number" min="1" max="200" step="0.1" inputmode="decimal" />
           </label>
           <label>
             Förbrukning kWh/100 km
-            <input id="consumptionKwh100" inputmode="decimal" />
+            <input id="consumptionKwh100" type="number" min="1" max="100" step="0.1" inputmode="decimal" />
           </label>
         </div>
         <p class="hint">Standardvärdet 64,7 kWh är ett ungefärligt användbart batterivärde för BMW iX1. Justera vid behov.</p>

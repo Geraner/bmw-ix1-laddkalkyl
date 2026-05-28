@@ -43,21 +43,33 @@ const DEFAULTS = {
   lastRateFetch: ""
 };
 
+const LIMITS = {
+  pricePerKwh: { min: 0, max: 100, fallback: DEFAULTS.pricePerKwh },
+  fromSoc: { min: 0, max: 100, fallback: DEFAULTS.fromSoc },
+  toSoc: { min: 0, max: 100, fallback: DEFAULTS.toSoc },
+  usableBatteryKwh: { min: 1, max: 200, fallback: DEFAULTS.usableBatteryKwh },
+  consumptionKwh100: { min: 1, max: 100, fallback: DEFAULTS.consumptionKwh100 },
+  rate: { min: 0.000001, max: 1000, fallback: 1 }
+};
+
 const INITIAL_RATES = Object.fromEntries(EUROPEAN_CURRENCIES.map((c) => [c.code, c.sek]));
-const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v1";
-const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v1";
+const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v2";
+const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v2";
+const API_TIMEOUT_MS = 8000;
+const MAX_API_PARSE_NODES = 5000;
+const MAX_API_PARSE_DEPTH = 20;
 
 function loadJson(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+    return raw ? { ...fallback, ...JSON.parse(raw) } : { ...fallback };
   } catch {
-    return fallback;
+    return { ...fallback };
   }
 }
 
-let settings = loadJson(STORAGE_SETTINGS, DEFAULTS);
-let rates = loadJson(STORAGE_RATES, INITIAL_RATES);
+let settings = sanitizeSettings(loadJson(STORAGE_SETTINGS, DEFAULTS));
+let rates = sanitizeRates(loadJson(STORAGE_RATES, INITIAL_RATES));
 
 function save() {
   localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings));
@@ -67,6 +79,40 @@ function save() {
 function parseNumber(value, fallback = 0) {
   const parsed = Number(String(value).replace(",", "."));
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function boundedNumber(value, limit) {
+  const parsed = parseNumber(value, limit.fallback);
+  return clamp(parsed, limit.min, limit.max);
+}
+
+function sanitizeSettings(input) {
+  const allowedCurrencies = new Set(EUROPEAN_CURRENCIES.map((c) => c.code));
+  return {
+    ...DEFAULTS,
+    ...input,
+    currency: allowedCurrencies.has(input.currency) ? input.currency : DEFAULTS.currency,
+    pricePerKwh: boundedNumber(input.pricePerKwh, LIMITS.pricePerKwh),
+    fromSoc: boundedNumber(input.fromSoc, LIMITS.fromSoc),
+    toSoc: boundedNumber(input.toSoc, LIMITS.toSoc),
+    usableBatteryKwh: boundedNumber(input.usableBatteryKwh, LIMITS.usableBatteryKwh),
+    consumptionKwh100: boundedNumber(input.consumptionKwh100, LIMITS.consumptionKwh100),
+    rateSource: String(input.rateSource || DEFAULTS.rateSource).slice(0, 120),
+    rateDate: String(input.rateDate || "").slice(0, 80),
+    lastRateFetch: String(input.lastRateFetch || "").slice(0, 80)
+  };
+}
+
+function sanitizeRates(input) {
+  const output = { ...INITIAL_RATES };
+  for (const c of EUROPEAN_CURRENCIES) {
+    output[c.code] = c.code === "SEK" ? 1 : boundedNumber(input[c.code], { ...LIMITS.rate, fallback: INITIAL_RATES[c.code] });
+  }
+  return output;
 }
 
 function sek(value, decimals = 2) {
@@ -89,11 +135,20 @@ function setText(id, value) {
   document.getElementById(id).textContent = value;
 }
 
-function bindInput(id, key) {
+function bindInput(id, key, limit) {
   const el = document.getElementById(id);
   el.value = settings[key];
+
   el.addEventListener("input", () => {
-    settings[key] = parseNumber(el.value, settings[key]);
+    const rawValue = parseNumber(el.value, settings[key]);
+    settings[key] = rawValue;
+    save();
+    calculate();
+  });
+
+  el.addEventListener("blur", () => {
+    settings[key] = boundedNumber(el.value, limit);
+    el.value = settings[key];
     save();
     calculate();
   });
@@ -101,7 +156,7 @@ function bindInput(id, key) {
 
 function setupCurrencySelect() {
   const select = document.getElementById("currency");
-  select.innerHTML = "";
+  select.replaceChildren();
 
   for (const c of EUROPEAN_CURRENCIES) {
     const option = document.createElement("option");
@@ -112,7 +167,8 @@ function setupCurrencySelect() {
 
   select.value = settings.currency;
   select.addEventListener("change", () => {
-    settings.currency = select.value;
+    const allowedCurrencies = new Set(EUROPEAN_CURRENCIES.map((c) => c.code));
+    settings.currency = allowedCurrencies.has(select.value) ? select.value : DEFAULTS.currency;
     save();
     calculate();
   });
@@ -120,19 +176,31 @@ function setupCurrencySelect() {
 
 function setupManualRates() {
   const container = document.getElementById("manualRates");
-  container.innerHTML = "";
+  container.replaceChildren();
 
   for (const c of EUROPEAN_CURRENCIES) {
     const label = document.createElement("label");
     label.textContent = `${c.code} – ${c.name}`;
 
     const input = document.createElement("input");
+    input.type = "number";
+    input.min = "0.000001";
+    input.max = "1000";
+    input.step = "0.000001";
     input.inputMode = "decimal";
     input.value = rates[c.code];
     input.disabled = c.code === "SEK";
+
     input.addEventListener("input", () => {
       rates[c.code] = parseNumber(input.value, rates[c.code]);
       settings.rateSource = "Manuellt ändrade kurser";
+      save();
+      calculate();
+    });
+
+    input.addEventListener("blur", () => {
+      rates[c.code] = c.code === "SEK" ? 1 : boundedNumber(input.value, { ...LIMITS.rate, fallback: INITIAL_RATES[c.code] });
+      input.value = rates[c.code];
       save();
       calculate();
     });
@@ -143,38 +211,66 @@ function setupManualRates() {
 }
 
 function findObservationValue(data) {
-  const candidates = [];
+  const stack = [{ value: data, depth: 0 }];
+  let visited = 0;
 
-  function walk(x) {
-    if (!x || typeof x !== "object") return;
-    if (Array.isArray(x)) {
-      x.forEach(walk);
-      return;
+  while (stack.length > 0) {
+    const { value, depth } = stack.pop();
+    visited += 1;
+
+    if (visited > MAX_API_PARSE_NODES) {
+      throw new Error("API-svaret var för stort.");
     }
-    candidates.push(x);
-    Object.values(x).forEach(walk);
-  }
 
-  walk(data);
+    if (!value || typeof value !== "object" || depth > MAX_API_PARSE_DEPTH) {
+      continue;
+    }
 
-  for (const obj of candidates) {
-    const keys = Object.keys(obj);
-    const valueKey = keys.find((k) => ["value", "Value", "observationValue", "ObservationValue"].includes(k));
-    if (valueKey) {
-      const value = parseNumber(obj[valueKey], NaN);
-      if (Number.isFinite(value)) {
-        const dateKey = keys.find((k) => ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(k));
-        return { value, date: dateKey ? String(obj[dateKey]) : "" };
+    if (!Array.isArray(value)) {
+      const keys = Object.keys(value);
+      const valueKey = keys.find((k) => ["value", "Value", "observationValue", "ObservationValue"].includes(k));
+
+      if (valueKey) {
+        const observationValue = parseNumber(value[valueKey], NaN);
+        if (Number.isFinite(observationValue) && observationValue > 0 && observationValue < 1000) {
+          const dateKey = keys.find((k) => ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(k));
+          return { value: observationValue, date: dateKey ? String(value[dateKey]).slice(0, 40) : "" };
+        }
       }
+    }
+
+    const children = Array.isArray(value) ? value : Object.values(value);
+    for (const child of children) {
+      stack.push({ value: child, depth: depth + 1 });
     }
   }
 
   throw new Error("Kunde inte tolka API-svaret.");
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = API_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        Accept: "application/json",
+        ...(options.headers || {})
+      }
+    });
+    return response;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 async function fetchRiksbankRate(seriesId) {
-  const url = `https://api.riksbank.se/swea/v1/Observations/Latest/${seriesId}`;
-  const response = await fetch(url, { headers: { Accept: "application/json" } });
+  const safeSeriesId = String(seriesId).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const url = `https://api.riksbank.se/swea/v1/Observations/Latest/${safeSeriesId}`;
+  const response = await fetchWithTimeout(url);
   if (!response.ok) throw new Error(`API-svar ${response.status}`);
   const data = await response.json();
   return findObservationValue(data);
@@ -192,7 +288,7 @@ async function fetchRates() {
   await Promise.all(Object.entries(RIKSBANK_SERIES).map(async ([currency, series]) => {
     try {
       const result = await fetchRiksbankRate(series);
-      updated[currency] = result.value;
+      updated[currency] = boundedNumber(result.value, { ...LIMITS.rate, fallback: rates[currency] || INITIAL_RATES[currency] });
       if (result.date) dates.push(result.date);
     } catch {
       failed.push(currency);
@@ -200,7 +296,7 @@ async function fetchRates() {
   }));
 
   if (Object.keys(updated).length > 0) {
-    rates = { ...rates, ...updated, SEK: 1 };
+    rates = sanitizeRates({ ...rates, ...updated, SEK: 1 });
     const uniqueDates = [...new Set(dates)].filter(Boolean);
     settings.rateSource = "Riksbanken API för vanliga valutor, övriga manuella/sparade";
     settings.rateDate = uniqueDates.length === 1 ? uniqueDates[0] : uniqueDates.slice(0, 3).join(" / ");
@@ -235,16 +331,19 @@ function hydrateInputs() {
 }
 
 function calculate() {
+  settings = sanitizeSettings(settings);
+  rates = sanitizeRates(rates);
+
   const currency = settings.currency;
-  const currencyRate = parseNumber(rates[currency], 1);
-  const pricePerKwh = parseNumber(settings.pricePerKwh, 0);
+  const currencyRate = rates[currency] || 1;
+  const pricePerKwh = boundedNumber(settings.pricePerKwh, LIMITS.pricePerKwh);
   const sekPerKwh = pricePerKwh * currencyRate;
 
-  const from = Math.min(100, Math.max(0, parseNumber(settings.fromSoc, 0)));
-  const to = Math.min(100, Math.max(0, parseNumber(settings.toSoc, 0)));
+  const from = boundedNumber(settings.fromSoc, LIMITS.fromSoc);
+  const to = boundedNumber(settings.toSoc, LIMITS.toSoc);
   const delta = Math.max(0, to - from);
-  const battery = parseNumber(settings.usableBatteryKwh, 64.7);
-  const consumption = parseNumber(settings.consumptionKwh100, 20);
+  const battery = boundedNumber(settings.usableBatteryKwh, LIMITS.usableBatteryKwh);
+  const consumption = boundedNumber(settings.consumptionKwh100, LIMITS.consumptionKwh100);
 
   const chargeKwh = battery * (delta / 100);
   const totalCostSek = chargeKwh * sekPerKwh;
@@ -276,11 +375,11 @@ function init() {
   setupManualRates();
   hydrateInputs();
 
-  bindInput("pricePerKwh", "pricePerKwh");
-  bindInput("fromSoc", "fromSoc");
-  bindInput("toSoc", "toSoc");
-  bindInput("usableBatteryKwh", "usableBatteryKwh");
-  bindInput("consumptionKwh100", "consumptionKwh100");
+  bindInput("pricePerKwh", "pricePerKwh", LIMITS.pricePerKwh);
+  bindInput("fromSoc", "fromSoc", LIMITS.fromSoc);
+  bindInput("toSoc", "toSoc", LIMITS.toSoc);
+  bindInput("usableBatteryKwh", "usableBatteryKwh", LIMITS.usableBatteryKwh);
+  bindInput("consumptionKwh100", "consumptionKwh100", LIMITS.consumptionKwh100);
 
   document.getElementById("fetchRatesBtn").addEventListener("click", fetchRates);
   document.getElementById("resetBtn").addEventListener("click", resetAll);
