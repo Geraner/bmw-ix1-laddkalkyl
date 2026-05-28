@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BMW iX1 laddkalkyl Europa</title>
+  <meta name="description" content="BMW iX1 laddkalkyl för svenska ägare som kör i Europa. Räkna om laddpris från europeiska valutor till SEK och beräkna total laddkostnad samt kostnad per 100 km." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="hero">
+      <div>
+        <div class="badge">BMW iX1 • Laddkalkyl Europa</div>
+        <h1>Räkna laddpris i SEK</h1>
+        <p>Välj valuta, ange laddpris per kWh, SoC och förbrukning. Kalkylen räknar ut total laddkostnad, pris per 100 km och pris per mil.</p>
+      </div>
+      <div class="actions">
+        <button id="fetchRatesBtn" class="primary">Hämta kurser</button>
+        <button id="resetBtn" class="secondary">Återställ</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Valutakurser</h2>
+        <p id="rateStatus">Valutakurser sparas lokalt i webbläsaren.</p>
+        <p id="rateMeta" class="meta"></p>
+      </div>
+      <div class="rate-grid">
+        <div class="mini"><span>EUR</span><strong id="eurMini">–</strong></div>
+        <div class="mini"><span>DKK</span><strong id="dkkMini">–</strong></div>
+        <div class="mini"><span>NOK</span><strong id="nokMini">–</strong></div>
+        <div class="mini"><span>GBP</span><strong id="gbpMini">–</strong></div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Stationens pris</h2>
+        <div class="form-grid">
+          <label>
+            Valuta
+            <select id="currency"></select>
+          </label>
+          <label>
+            Pris per kWh
+            <input id="pricePerKwh" inputmode="decimal" />
+          </label>
+        </div>
+        <div class="highlight">
+          <span>Omräknat laddpris</span>
+          <strong id="sekPerKwh">–</strong>
+          <small id="currencyRateText">–</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>BMW iX1 och laddning</h2>
+        <div class="form-grid">
+          <label>
+            Nuvarande SoC %
+            <input id="fromSoc" inputmode="decimal" />
+          </label>
+          <label>
+            Ladda till %
+            <input id="toSoc" inputmode="decimal" />
+          </label>
+          <label>
+            Användbart batteri kWh
+            <input id="usableBatteryKwh" inputmode="decimal" />
+          </label>
+          <label>
+            Förbrukning kWh/100 km
+            <input id="consumptionKwh100" inputmode="decimal" />
+          </label>
+        </div>
+        <p class="hint">Standardvärdet 64,7 kWh är ett ungefärligt användbart batterivärde för BMW iX1. Justera vid behov.</p>
+      </div>
+    </section>
+
+    <section class="results">
+      <div class="result main">
+        <span>Total laddkostnad</span>
+        <strong id="totalCostSek">–</strong>
+        <small id="totalCostDetail">–</small>
+        <small id="totalCostLocal">–</small>
+      </div>
+      <div class="result">
+        <span>Kostnad per 100 km</span>
+        <strong id="costPer100KmSek">–</strong>
+        <small id="costPer100Detail">–</small>
+      </div>
+      <div class="result">
+        <span>Energi att ladda</span>
+        <strong id="chargeKwh">–</strong>
+      </div>
+      <div class="result">
+        <span>Ungefärlig körsträcka</span>
+        <strong id="rangeAddedKm">–</strong>
+      </div>
+      <div class="result">
+        <span>Pris per mil</span>
+        <strong id="costPer10KmSek">–</strong>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Manuella valutakurser</h2>
+      <p class="hint">Om automatisk hämtning inte fungerar kan du ändra kurserna här. Alla värden sparas lokalt i webbläsaren.</p>
+      <div id="manualRates" class="manual-grid"></div>
+    </section>
+
+    <footer>
+      Beräkningarna är ungefärliga. Laddförluster, kortpåslag, parkeringsavgifter, blockeringstaxa och operatörernas prisändringar kan påverka slutkostnaden.
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
