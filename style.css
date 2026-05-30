@@ -172,13 +172,19 @@ input:invalid {
 
 .results {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
 
+.top-results {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.bottom-results {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .result.main {
-  grid-column: span 2;
   background: var(--primary);
   color: white;
 }
@@ -308,11 +314,6 @@ details.collapsible .card-header p:first-child {
   .results {
     grid-template-columns: 1fr;
   }
-
-  .result.main {
-    grid-column: auto;
-  }
-
   .app {
     padding: 14px;
   }
