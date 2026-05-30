@@ -1,0 +1,31 @@
+name: Update exchange rates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 17 * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  update-rates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fetch latest exchange rates
+        run: node scripts/fetch-rates.mjs
+
+      - name: Commit updated rates.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update exchange rates
+          file_pattern: rates.json
