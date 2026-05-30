@@ -1,0 +1,25 @@
+{
+  "name": "BMW iX1 laddkalkyl Europa",
+  "short_name": "iX1 laddkalkyl",
+  "description": "Räkna om europeiska laddpriser till SEK och beräkna laddkostnad för BMW iX1.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#071f4f",
+  "lang": "sv-SE",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

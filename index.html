@@ -4,97 +4,172 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.riksbank.se; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self' https://api.riksbank.se; img-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; manifest-src 'self'; upgrade-insecure-requests;">
   <meta name="referrer" content="strict-origin-when-cross-origin" />
 
   <title>BMW iX1 laddkalkyl Europa</title>
   <meta name="description" content="BMW iX1 laddkalkyl för svenska ägare som kör i Europa. Räkna om laddpris från europeiska valutor till SEK och beräkna total laddkostnad samt kostnad per 100 km." />
+
+  <meta name="theme-color" content="#071f4f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="iX1 laddkalkyl" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" href="icon-192.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="app">
     <header class="hero">
+      <div class="brand-mark" aria-hidden="true">⚡</div>
       <div>
         <div class="badge">BMW iX1 • Laddkalkyl Europa</div>
         <h1>Räkna laddpris i SEK</h1>
-        <p>Välj valuta, ange laddpris per kWh, SoC och förbrukning. Kalkylen räknar ut total laddkostnad, pris per 100 km och pris per mil.</p>
-      </div>
-      <div class="actions">
-        <button id="fetchRatesBtn" class="primary" type="button">Hämta kurser</button>
-        <button id="resetBtn" class="secondary" type="button">Återställ</button>
+        <p>Välj valuta, pris per kWh, SoC och förbrukning. Kalkylen visar total laddkostnad, pris per 100 km och pris per mil.</p>
       </div>
     </header>
-    <section class="grid two">
-      <div class="card">
-        <h2>Stationens pris</h2>
-        <div class="form-grid">
-          <label>
-            Valuta
-            <select id="currency"></select>
-          </label>
-          <label>
-            Pris per kWh
-            <input id="pricePerKwh" type="number" min="0" max="100" step="0.01" inputmode="decimal" />
-          </label>
-        </div>
-        <div class="highlight">
-          <span>Omräknat laddpris</span>
-          <strong id="sekPerKwh">–</strong>
-          <small id="currencyRateText">–</small>
-        </div>
-      </div>
 
-      <div class="card">
-        <h2>BMW iX1 och laddning</h2>
-        <div class="form-grid">
-          <label>
-            Nuvarande SoC %
-            <input id="fromSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
-          </label>
-          <label>
-            Ladda till %
-            <input id="toSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
-          </label>
-          <label>
-            Användbart batteri kWh
-            <input id="usableBatteryKwh" type="number" min="1" max="200" step="0.1" inputmode="decimal" />
-          </label>
-          <label>
-            Förbrukning kWh/100 km
-            <input id="consumptionKwh100" type="number" min="1" max="100" step="0.1" inputmode="decimal" />
-          </label>
-        </div>
-        <p class="hint">Standardvärdet 64,7 kWh är ett ungefärligt användbart batterivärde för BMW iX1. Justera vid behov.</p>
+    <section class="card step-card">
+      <h2>1. Vad kostar laddaren?</h2>
+      <div class="form-grid">
+        <label>
+          Valuta
+          <select id="currency"></select>
+        </label>
+        <label>
+          Pris per kWh
+          <div class="input-suffix">
+            <input id="pricePerKwh" type="number" min="0" max="100" step="0.01" inputmode="decimal" />
+            <span id="priceCurrencySuffix">EUR</span>
+          </div>
+        </label>
+      </div>
+      <div class="quick-row" aria-label="Snabbval för vanliga laddpriser">
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.39">0,39 EUR</button>
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.45">0,45 EUR</button>
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.49">0,49 EUR</button>
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.54">0,54 EUR</button>
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.59">0,59 EUR</button>
+        <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.69">0,69 EUR</button>
+      </div>
+      <div class="compact-info">
+        <span>Omräknat laddpris</span>
+        <strong id="sekPerKwh">–</strong>
+        <small id="currencyRateText">–</small>
       </div>
     </section>
 
-    <section class="results top-results">
-      <div class="result main">
+    <section class="card step-card">
+      <h2>2. Hur mycket ska du ladda?</h2>
+      <div class="form-grid">
+        <label>
+          Nuvarande SoC
+          <div class="input-suffix">
+            <input id="fromSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
+            <span>%</span>
+          </div>
+        </label>
+        <label>
+          Ladda till
+          <div class="input-suffix">
+            <input id="toSoc" type="number" min="0" max="100" step="1" inputmode="decimal" />
+            <span>%</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="soc-grid">
+        <div>
+          <div class="quick-label">Snabbval – startnivå</div>
+          <div class="quick-row">
+            <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="10">10%</button>
+            <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="20">20%</button>
+            <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="30">30%</button>
+            <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="40">40%</button>
+          </div>
+        </div>
+        <div>
+          <div class="quick-label">Snabbval – målnivå</div>
+          <div class="quick-row">
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="50">50%</button>
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="60">60%</button>
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="70">70%</button>
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="80">80%</button>
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="90">90%</button>
+            <button type="button" class="chip soc-chip" data-target="toSoc" data-value="100">100%</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card step-card">
+      <h2>3. Din förbrukning</h2>
+      <div class="form-grid single">
+        <label>
+          Förbrukning kWh/100 km
+          <div class="input-suffix">
+            <input id="consumptionKwh100" type="number" min="1" max="100" step="0.1" inputmode="decimal" />
+            <span>kWh/100 km</span>
+          </div>
+        </label>
+        <label>
+          Användbart batteri kWh
+          <div class="input-suffix">
+            <input id="usableBatteryKwh" type="number" min="1" max="200" step="0.1" inputmode="decimal" />
+            <span>kWh</span>
+          </div>
+        </label>
+      </div>
+      <p class="hint">Standardvärdet 64,7 kWh är ett ungefärligt användbart batterivärde för BMW iX1. Justera vid behov.</p>
+    </section>
+
+    <section class="result-hero">
+      <div class="bolt" aria-hidden="true">⚡</div>
+      <div>
         <span>Total laddkostnad</span>
         <strong id="totalCostSek">–</strong>
         <small id="totalCostDetail">–</small>
         <small id="totalCostLocal">–</small>
       </div>
-      <div class="result">
-        <span>Energi att ladda</span>
-        <strong id="chargeKwh">–</strong>
+    </section>
+
+    <section class="metric-grid">
+      <div class="metric">
+        <div class="metric-icon green">▯</div>
+        <div>
+          <span>Energi att ladda</span>
+          <strong id="chargeKwh">–</strong>
+        </div>
       </div>
-      <div class="result">
-        <span>Tillförd räckvidd</span>
-        <strong id="rangeAddedKm">–</strong>
+      <div class="metric">
+        <div class="metric-icon blue">↗</div>
+        <div>
+          <span>Tillförd räckvidd</span>
+          <strong id="rangeAddedKm">–</strong>
+        </div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon purple">⌁</div>
+        <div>
+          <span>Kostnad per 100 km</span>
+          <strong id="costPer100KmSek">–</strong>
+          <small id="costPer100Detail">–</small>
+        </div>
+      </div>
+      <div class="metric">
+        <div class="metric-icon orange">≈</div>
+        <div>
+          <span>Pris per mil</span>
+          <strong id="costPer10KmSek">–</strong>
+        </div>
       </div>
     </section>
 
-    <section class="results bottom-results">
-      <div class="result">
-        <span>Kostnad per 100 km</span>
-        <strong id="costPer100KmSek">–</strong>
-        <small id="costPer100Detail">–</small>
-      </div>
-      <div class="result">
-        <span>Pris per mil</span>
-        <strong id="costPer10KmSek">–</strong>
-      </div>
+    <section class="summary-box">
+      <div class="info-icon">i</div>
+      <p id="plainSummary">–</p>
     </section>
 
     <details class="card collapsible">
@@ -113,9 +188,12 @@
           <div class="mini"><span>NOK</span><strong id="nokMini">–</strong></div>
           <div class="mini"><span>GBP</span><strong id="gbpMini">–</strong></div>
         </div>
+        <div class="actions rates-actions">
+          <button id="fetchRatesBtn" class="primary" type="button">Hämta kurser</button>
+          <button id="resetBtn" class="secondary" type="button">Återställ</button>
+        </div>
       </div>
     </details>
-
 
     <details class="card collapsible">
       <summary>

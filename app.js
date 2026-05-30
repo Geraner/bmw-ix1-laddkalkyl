@@ -53,8 +53,8 @@ const LIMITS = {
 };
 
 const INITIAL_RATES = Object.fromEntries(EUROPEAN_CURRENCIES.map((c) => [c.code, c.sek]));
-const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v2";
-const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v2";
+const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v3";
+const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v3";
 const API_TIMEOUT_MS = 8000;
 const MAX_API_PARSE_NODES = 5000;
 const MAX_API_PARSE_DEPTH = 20;
@@ -132,7 +132,8 @@ function num(value, decimals = 2) {
 }
 
 function setText(id, value) {
-  document.getElementById(id).textContent = value;
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
 }
 
 function bindInput(id, key, limit) {
@@ -171,6 +172,45 @@ function setupCurrencySelect() {
     settings.currency = allowedCurrencies.has(select.value) ? select.value : DEFAULTS.currency;
     save();
     calculate();
+  });
+}
+
+function setupQuickButtons() {
+  document.querySelectorAll(".price-chip").forEach((button) => {
+    button.addEventListener("click", () => {
+      settings.currency = button.dataset.currency;
+      settings.pricePerKwh = boundedNumber(button.dataset.price, LIMITS.pricePerKwh);
+      hydrateInputs();
+      save();
+      calculate();
+    });
+  });
+
+  document.querySelectorAll(".soc-chip").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.target;
+      const value = Number(button.dataset.value);
+      if (target === "fromSoc") settings.fromSoc = boundedNumber(value, LIMITS.fromSoc);
+      if (target === "toSoc") settings.toSoc = boundedNumber(value, LIMITS.toSoc);
+      hydrateInputs();
+      save();
+      calculate();
+    });
+  });
+}
+
+function updateActiveChips() {
+  document.querySelectorAll(".price-chip").forEach((button) => {
+    const price = parseNumber(button.dataset.price, NaN);
+    const isActive = button.dataset.currency === settings.currency && Math.abs(price - Number(settings.pricePerKwh)) < 0.0001;
+    button.classList.toggle("active", isActive);
+  });
+
+  document.querySelectorAll(".soc-chip").forEach((button) => {
+    const target = button.dataset.target;
+    const value = Number(button.dataset.value);
+    const current = target === "fromSoc" ? Number(settings.fromSoc) : Number(settings.toSoc);
+    button.classList.toggle("active", Math.abs(value - current) < 0.0001);
   });
 }
 
@@ -253,7 +293,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = API_TIMEOUT_MS) {
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(url, {
+    return await fetch(url, {
       ...options,
       signal: controller.signal,
       headers: {
@@ -261,7 +301,6 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = API_TIMEOUT_MS) {
         ...(options.headers || {})
       }
     });
-    return response;
   } finally {
     window.clearTimeout(timeout);
   }
@@ -325,9 +364,11 @@ function resetAll() {
 
 function hydrateInputs() {
   for (const key of ["pricePerKwh", "fromSoc", "toSoc", "usableBatteryKwh", "consumptionKwh100"]) {
-    document.getElementById(key).value = settings[key];
+    const el = document.getElementById(key);
+    if (el) el.value = settings[key];
   }
-  document.getElementById("currency").value = settings.currency;
+  const currencyEl = document.getElementById("currency");
+  if (currencyEl) currencyEl.value = settings.currency;
 }
 
 function calculate() {
@@ -357,6 +398,7 @@ function calculate() {
   setText("nokMini", `${num(rates.NOK, 4)} kr`);
   setText("gbpMini", `${num(rates.GBP, 4)} kr`);
 
+  setText("priceCurrencySuffix", currency);
   setText("rateMeta", `Källa: ${settings.rateSource}${settings.rateDate ? " · kursdatum: " + settings.rateDate : ""}${settings.lastRateFetch ? " · hämtad: " + settings.lastRateFetch : ""}`);
   setText("sekPerKwh", `${sek(sekPerKwh, 2)}/kWh`);
   setText("currencyRateText", `1 ${currency} = ${num(currencyRate, 5)} SEK`);
@@ -368,10 +410,24 @@ function calculate() {
   setText("chargeKwh", `${num(chargeKwh, 1)} kWh`);
   setText("rangeAddedKm", `${num(rangeAddedKm, 0)} km`);
   setText("costPer10KmSek", sek(costPer10KmSek, 2));
+  setText("plainSummary", `Att ladda från ${num(from, 0)} % till ${num(to, 0)} % kostar cirka ${sek(totalCostSek, 0)} och ger ungefär ${num(rangeAddedKm, 0)} km vid ${num(consumption, 1)} kWh/100 km.`);
+
+  updateActiveChips();
+}
+
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {
+        // Appen fungerar även utan service worker.
+      });
+    });
+  }
 }
 
 function init() {
   setupCurrencySelect();
+  setupQuickButtons();
   setupManualRates();
   hydrateInputs();
 
@@ -385,6 +441,7 @@ function init() {
   document.getElementById("resetBtn").addEventListener("click", resetAll);
 
   calculate();
+  registerServiceWorker();
 }
 
 init();
