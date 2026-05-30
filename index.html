@@ -24,21 +24,6 @@
         <button id="resetBtn" class="secondary" type="button">Återställ</button>
       </div>
     </header>
-
-    <section class="card">
-      <div class="card-header">
-        <h2>Valutakurser</h2>
-        <p id="rateStatus">Valutakurser sparas lokalt i webbläsaren.</p>
-        <p id="rateMeta" class="meta"></p>
-      </div>
-      <div class="rate-grid">
-        <div class="mini"><span>EUR</span><strong id="eurMini">–</strong></div>
-        <div class="mini"><span>DKK</span><strong id="dkkMini">–</strong></div>
-        <div class="mini"><span>NOK</span><strong id="nokMini">–</strong></div>
-        <div class="mini"><span>GBP</span><strong id="gbpMini">–</strong></div>
-      </div>
-    </section>
-
     <section class="grid two">
       <div class="card">
         <h2>Stationens pris</h2>
@@ -109,11 +94,36 @@
       </div>
     </section>
 
-    <section class="card">
-      <h2>Manuella valutakurser</h2>
-      <p class="hint">Om automatisk hämtning inte fungerar kan du ändra kurserna här. Alla värden sparas lokalt i webbläsaren.</p>
-      <div id="manualRates" class="manual-grid"></div>
-    </section>
+    <details class="card collapsible">
+      <summary>
+        <span>Valutakurser</span>
+        <small>Klicka för att visa eller dölja aktuella kurser</small>
+      </summary>
+      <div class="collapsible-content">
+        <div class="card-header">
+          <p id="rateStatus">Valutakurser sparas lokalt i webbläsaren.</p>
+          <p id="rateMeta" class="meta"></p>
+        </div>
+        <div class="rate-grid">
+          <div class="mini"><span>EUR</span><strong id="eurMini">–</strong></div>
+          <div class="mini"><span>DKK</span><strong id="dkkMini">–</strong></div>
+          <div class="mini"><span>NOK</span><strong id="nokMini">–</strong></div>
+          <div class="mini"><span>GBP</span><strong id="gbpMini">–</strong></div>
+        </div>
+      </div>
+    </details>
+
+
+    <details class="card collapsible">
+      <summary>
+        <span>Manuella valutakurser</span>
+        <small>Klicka för att visa eller ändra sparade kurser</small>
+      </summary>
+      <div class="collapsible-content">
+        <p class="hint">Om automatisk hämtning inte fungerar kan du ändra kurserna här. Alla värden sparas lokalt i webbläsaren.</p>
+        <div id="manualRates" class="manual-grid"></div>
+      </div>
+    </details>
 
     <footer>
       Beräkningarna är ungefärliga. Laddförluster, kortpåslag, parkeringsavgifter, blockeringstaxa och operatörernas prisändringar kan påverka slutkostnaden.

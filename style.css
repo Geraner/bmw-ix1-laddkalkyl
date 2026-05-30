@@ -231,6 +231,62 @@ footer {
   padding: 10px 4px 24px;
 }
 
+
+details.collapsible {
+  padding: 0;
+  overflow: hidden;
+}
+
+details.collapsible summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  font-weight: 800;
+  font-size: 22px;
+}
+
+details.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+details.collapsible summary::after {
+  content: "+";
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+  background: #fff;
+}
+
+details.collapsible[open] summary::after {
+  content: "−";
+}
+
+details.collapsible summary small {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.collapsible-content {
+  padding: 0 20px 20px;
+}
+
+details.collapsible .card-header p:first-child {
+  margin-top: 0;
+}
+
 @media (max-width: 820px) {
   .hero {
     align-items: stretch;
