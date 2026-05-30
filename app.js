@@ -53,8 +53,8 @@ const LIMITS = {
 };
 
 const INITIAL_RATES = Object.fromEntries(EUROPEAN_CURRENCIES.map((c) => [c.code, c.sek]));
-const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v3";
-const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v3";
+const STORAGE_SETTINGS = "bmw-ix1-europe-charge-settings-v4";
+const STORAGE_RATES = "bmw-ix1-europe-charge-rates-v4";
 const API_TIMEOUT_MS = 8000;
 const MAX_API_PARSE_NODES = 5000;
 const MAX_API_PARSE_DEPTH = 20;
@@ -250,99 +250,59 @@ function setupManualRates() {
   }
 }
 
-function findObservationValue(data) {
-  const stack = [{ value: data, depth: 0 }];
-  let visited = 0;
+async function fetchLocalRatesFile() {
+  const response = await fetch(`rates.json?ts=${Date.now()}`, {
+    cache: "no-store",
+    headers: { Accept: "application/json" }
+  });
 
-  while (stack.length > 0) {
-    const { value, depth } = stack.pop();
-    visited += 1;
-
-    if (visited > MAX_API_PARSE_NODES) {
-      throw new Error("API-svaret var för stort.");
-    }
-
-    if (!value || typeof value !== "object" || depth > MAX_API_PARSE_DEPTH) {
-      continue;
-    }
-
-    if (!Array.isArray(value)) {
-      const keys = Object.keys(value);
-      const valueKey = keys.find((k) => ["value", "Value", "observationValue", "ObservationValue"].includes(k));
-
-      if (valueKey) {
-        const observationValue = parseNumber(value[valueKey], NaN);
-        if (Number.isFinite(observationValue) && observationValue > 0 && observationValue < 1000) {
-          const dateKey = keys.find((k) => ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(k));
-          return { value: observationValue, date: dateKey ? String(value[dateKey]).slice(0, 40) : "" };
-        }
-      }
-    }
-
-    const children = Array.isArray(value) ? value : Object.values(value);
-    for (const child of children) {
-      stack.push({ value: child, depth: depth + 1 });
-    }
+  if (!response.ok) {
+    throw new Error(`rates.json kunde inte hämtas: ${response.status}`);
   }
 
-  throw new Error("Kunde inte tolka API-svaret.");
-}
-
-async function fetchWithTimeout(url, options = {}, timeoutMs = API_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json",
-        ...(options.headers || {})
-      }
-    });
-  } finally {
-    window.clearTimeout(timeout);
-  }
-}
-
-async function fetchRiksbankRate(seriesId) {
-  const safeSeriesId = String(seriesId).toLowerCase().replace(/[^a-z0-9]/g, "");
-  const url = `https://api.riksbank.se/swea/v1/Observations/Latest/${safeSeriesId}`;
-  const response = await fetchWithTimeout(url);
-  if (!response.ok) throw new Error(`API-svar ${response.status}`);
   const data = await response.json();
-  return findObservationValue(data);
+  if (!data || typeof data !== "object" || !data.rates || typeof data.rates !== "object") {
+    throw new Error("rates.json har fel format.");
+  }
+
+  const safeRates = {};
+  for (const [currency, value] of Object.entries(data.rates)) {
+    if (currency in INITIAL_RATES) {
+      safeRates[currency] = boundedNumber(value, { ...LIMITS.rate, fallback: rates[currency] || INITIAL_RATES[currency] });
+    }
+  }
+
+  if (Object.keys(safeRates).length === 0) {
+    throw new Error("rates.json innehöll inga användbara kurser.");
+  }
+
+  return {
+    rates: safeRates,
+    source: String(data.source || "rates.json").slice(0, 120),
+    date: String(data.date || "").slice(0, 80),
+    updatedAt: String(data.updatedAt || "").slice(0, 80),
+    failed: Array.isArray(data.failed) ? data.failed.map((x) => String(x).slice(0, 12)) : []
+  };
 }
 
 async function fetchRates() {
   const button = document.getElementById("fetchRatesBtn");
   button.disabled = true;
-  setText("rateStatus", "Hämtar senaste publicerade kurser från Riksbanken...");
+  setText("rateStatus", "Hämtar sparade valutakurser från webbplatsen...");
 
-  const updated = {};
-  const dates = [];
-  const failed = [];
+  try {
+    const result = await fetchLocalRatesFile();
+    rates = sanitizeRates({ ...rates, ...result.rates, SEK: 1 });
 
-  await Promise.all(Object.entries(RIKSBANK_SERIES).map(async ([currency, series]) => {
-    try {
-      const result = await fetchRiksbankRate(series);
-      updated[currency] = boundedNumber(result.value, { ...LIMITS.rate, fallback: rates[currency] || INITIAL_RATES[currency] });
-      if (result.date) dates.push(result.date);
-    } catch {
-      failed.push(currency);
-    }
-  }));
-
-  if (Object.keys(updated).length > 0) {
-    rates = sanitizeRates({ ...rates, ...updated, SEK: 1 });
-    const uniqueDates = [...new Set(dates)].filter(Boolean);
-    settings.rateSource = "Riksbanken API för vanliga valutor, övriga manuella/sparade";
-    settings.rateDate = uniqueDates.length === 1 ? uniqueDates[0] : uniqueDates.slice(0, 3).join(" / ");
+    settings.rateSource = result.source || "Uppdaterad rates.json";
+    settings.rateDate = result.date || "Senaste publicerade";
     settings.lastRateFetch = new Date().toLocaleString("sv-SE");
-    setText("rateStatus", failed.length ? `Kurser uppdaterade delvis. Kunde inte hämta: ${failed.join(", ")}.` : "Kurser uppdaterade och sparade lokalt.");
-  } else {
-    setText("rateStatus", "Kunde inte hämta kurser. Använder sparade/manuella kurser.");
+
+    const failedText = result.failed.length ? ` Saknade/ej uppdaterade: ${result.failed.join(", ")}.` : "";
+    const updatedText = result.updatedAt ? ` Fil uppdaterad: ${result.updatedAt}.` : "";
+    setText("rateStatus", `Valutakurser uppdaterade från webbplatsens rates.json.${updatedText}${failedText}`);
+  } catch (error) {
+    setText("rateStatus", "Kunde inte hämta rates.json. Använder sparade/manuella kurser i denna webbläsare.");
   }
 
   save();

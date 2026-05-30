@@ -1,10 +1,11 @@
-const CACHE_NAME = "bmw-ix1-laddkalkyl-v4";
+const CACHE_NAME = "bmw-ix1-laddkalkyl-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
   "./manifest.json",
+  "./rates.json",
   "./icon-192.png",
   "./icon-512.png"
 ];
@@ -30,6 +31,17 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+
+  if (url.pathname.endsWith("/rates.json")) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
