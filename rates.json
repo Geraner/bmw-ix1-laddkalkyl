@@ -1,15 +1,15 @@
 {
   "source": "Riksbanken API via GitHub Actions. Övriga valutor använder manuella/sparade standardvärden.",
-  "date": "2026-06-08",
-  "updatedAt": "2026-06-08T19:40:15.378Z",
+  "date": "2026-06-09",
+  "updatedAt": "2026-06-09T19:34:46.770Z",
   "rates": {
-    "EUR": 10.876,
-    "DKK": 1.45518,
-    "NOK": 0.99629,
-    "GBP": 12.59379,
-    "CHF": 11.83847,
-    "PLN": 2.5637,
-    "CZK": 0.44885,
+    "EUR": 10.885,
+    "DKK": 1.45634,
+    "NOK": 0.99547,
+    "GBP": 12.60713,
+    "CHF": 11.82381,
+    "PLN": 2.56885,
+    "CZK": 0.45039,
     "HUF": 0.03059,
     "RON": 2.18,
     "BGN": 5.55,
@@ -23,5 +23,7 @@
     "UAH": 0.26,
     "SEK": 1
   },
-  "failed": []
+  "failed": [
+    "HUF"
+  ]
 }
