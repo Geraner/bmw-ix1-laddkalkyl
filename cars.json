@@ -1,0 +1,157 @@
+[
+  {
+    "id": "custom",
+    "label": "Egen bil / eget batteri",
+    "usableBatteryKwh": 64.7,
+    "defaultConsumptionKwh100": 20,
+    "category": "Egen inställning",
+    "note": "Ändra batteri och förbrukning manuellt."
+  },
+  {
+    "id": "bmw-ix1-edrive20",
+    "label": "BMW iX1 eDrive20",
+    "usableBatteryKwh": 65.2,
+    "defaultConsumptionKwh100": 20,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-ix1-xdrive30",
+    "label": "BMW iX1 xDrive30",
+    "usableBatteryKwh": 65.2,
+    "defaultConsumptionKwh100": 21,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-ix2-edrive20",
+    "label": "BMW iX2 eDrive20",
+    "usableBatteryKwh": 65.2,
+    "defaultConsumptionKwh100": 20,
+    "category": "SUV Coupé"
+  },
+  {
+    "id": "bmw-ix2-xdrive30",
+    "label": "BMW iX2 xDrive30",
+    "usableBatteryKwh": 65.2,
+    "defaultConsumptionKwh100": 21,
+    "category": "SUV Coupé"
+  },
+  {
+    "id": "bmw-ix3-40",
+    "label": "BMW iX3 40",
+    "usableBatteryKwh": 82.6,
+    "defaultConsumptionKwh100": 19,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-i4-edrive40",
+    "label": "BMW i4 eDrive40",
+    "usableBatteryKwh": 81.3,
+    "defaultConsumptionKwh100": 18,
+    "category": "Gran Coupé"
+  },
+  {
+    "id": "bmw-i4-xdrive40",
+    "label": "BMW i4 xDrive40",
+    "usableBatteryKwh": 81.3,
+    "defaultConsumptionKwh100": 19,
+    "category": "Gran Coupé"
+  },
+  {
+    "id": "bmw-i4-m60",
+    "label": "BMW i4 M60 xDrive",
+    "usableBatteryKwh": 81.1,
+    "defaultConsumptionKwh100": 21,
+    "category": "M Gran Coupé"
+  },
+  {
+    "id": "bmw-i5-edrive40-sedan",
+    "label": "BMW i5 eDrive40 Sedan",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 19,
+    "category": "Sedan"
+  },
+  {
+    "id": "bmw-i5-xdrive40-sedan",
+    "label": "BMW i5 xDrive40 Sedan",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 20,
+    "category": "Sedan"
+  },
+  {
+    "id": "bmw-i5-m60-sedan",
+    "label": "BMW i5 M60 xDrive Sedan",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 22,
+    "category": "M Sedan"
+  },
+  {
+    "id": "bmw-i5-edrive40-touring",
+    "label": "BMW i5 eDrive40 Touring",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 20,
+    "category": "Touring"
+  },
+  {
+    "id": "bmw-i5-xdrive40-touring",
+    "label": "BMW i5 xDrive40 Touring",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 21,
+    "category": "Touring"
+  },
+  {
+    "id": "bmw-i5-m60-touring",
+    "label": "BMW i5 M60 xDrive Touring",
+    "usableBatteryKwh": 81.2,
+    "defaultConsumptionKwh100": 23,
+    "category": "M Touring"
+  },
+  {
+    "id": "bmw-i7-edrive50",
+    "label": "BMW i7 eDrive50",
+    "usableBatteryKwh": 101.7,
+    "defaultConsumptionKwh100": 22,
+    "category": "Sedan"
+  },
+  {
+    "id": "bmw-i7-xdrive60",
+    "label": "BMW i7 xDrive60",
+    "usableBatteryKwh": 112.5,
+    "defaultConsumptionKwh100": 22,
+    "category": "Sedan"
+  },
+  {
+    "id": "bmw-i7-m70",
+    "label": "BMW i7 M70 xDrive",
+    "usableBatteryKwh": 112.5,
+    "defaultConsumptionKwh100": 25,
+    "category": "M Sedan"
+  },
+  {
+    "id": "bmw-ix-xdrive45",
+    "label": "BMW iX xDrive45",
+    "usableBatteryKwh": 74.1,
+    "defaultConsumptionKwh100": 23,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-ix-xdrive50",
+    "label": "BMW iX xDrive50",
+    "usableBatteryKwh": 94.8,
+    "defaultConsumptionKwh100": 23,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-ix-xdrive60",
+    "label": "BMW iX xDrive60",
+    "usableBatteryKwh": 109.1,
+    "defaultConsumptionKwh100": 23,
+    "category": "SUV"
+  },
+  {
+    "id": "bmw-ix-m70",
+    "label": "BMW iX M70 xDrive",
+    "usableBatteryKwh": 108.9,
+    "defaultConsumptionKwh100": 26,
+    "category": "M SUV"
+  }
+]

@@ -1,7 +1,7 @@
 {
-  "name": "BMW iX1 laddkalkyl Europa",
-  "short_name": "iX1 laddkalkyl",
-  "description": "Räkna om europeiska laddpriser till SEK och beräkna laddkostnad för BMW iX1.",
+  "name": "BMW laddkostnadskalkylator",
+  "short_name": "BMW laddkalkyl",
+  "description": "Räkna om europeiska laddpriser till SEK och beräkna laddkostnad för BMW i-modeller.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
