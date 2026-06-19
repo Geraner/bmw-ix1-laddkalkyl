@@ -1,20 +1,22 @@
-# BMW iX1 laddkalkyl Europa
+# BMW laddkostnadskalkylator
 
-En enkel laddkalkyl för BMW iX1-ägare i Sverige som kör i Europa.
+En enkel laddkalkyl för BMW i-modeller för svenska förare som kör i Europa.
 
-Appen räknar om laddpris från europeiska valutor till SEK och visar:
+## Nytt i denna version
 
-- total laddkostnad
-- pris per kWh i SEK
-- kostnad per 100 km
-- pris per mil
-- energi att ladda utifrån SoC
-- ungefärlig körsträcka utifrån aktuell förbrukning
+- Dropdown för BMW i-modeller
+- Lokal `cars.json` med batteristorlek och föreslagen förbrukning
+- Standardförbrukning baserad på EV Database där referensvärde finns
+- Källa för förbrukning visas i modellinformationen i appen
+- Stöd för modeller med olika batteristorlekar genom separata varianter i listan
+- Egen bil / eget batteri för manuella värden
+- Uppdaterad PWA-cache som även hanterar `cars.json`
 
 ## Valutakurser
 
-Appen försöker hämta vanliga valutor från Riksbankens öppna API. Om hämtning inte fungerar används sparade eller manuellt angivna kurser i webbläsarens localStorage.
+Webbappen hämtar kurser från `rates.json`, inte direkt från Riksbanken i användarens webbläsare. GitHub Actions kan uppdatera `rates.json` via Riksbankens API.
 
 ## Begränsningar
 
-Beräkningarna är ungefärliga. Laddförluster, kortpåslag, parkeringsavgifter, blockeringstaxa och operatörernas prisändringar kan påverka slutkostnaden.
+Batterivärden är praktiska startvärden för laddberäkning. Föreslagen förbrukning baseras på EV Database där referensvärde finns, men verklig förbrukning varierar med hastighet, däck, väder, last och körstil.
+
