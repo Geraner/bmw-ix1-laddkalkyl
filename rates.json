@@ -1,7 +1,7 @@
 {
-  "source": "Riksbanken API (startvärden). GitHub Actions uppdaterar automatiskt vardagar.",
-  "date": "2026-06-25",
-  "updatedAt": "2026-06-25T00:00:00.000Z",
+  "source": "Riksbanken API via GitHub Actions. Övriga valutor använder manuella/sparade standardvärden.",
+  "date": "2025-12-30 / 2026-06-25",
+  "updatedAt": "2026-06-25T20:48:43.143Z",
   "rates": {
     "EUR": 11.069,
     "DKK": 1.4809,
