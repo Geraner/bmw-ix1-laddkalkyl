@@ -1,8 +1,137 @@
 import { writeFile, readFile } from "node:fs/promises";
-const SERIES={EUR:"sekeurpmi",DKK:"sekdkkpmi",NOK:"seknokpmi",GBP:"sekgbppmi",CHF:"sekchfpmi",PLN:"sekplnpmi",CZK:"sekczkpmi",HUF:"sekhufpmi"};
-const FALLBACK_RATES={EUR:10.8485,DKK:1.45183,NOK:.94,GBP:12.75,CHF:11.55,PLN:2.55,CZK:.44,HUF:.028,RON:2.18,BGN:5.55,ISK:.078,TRY:.34,RSD:.093,BAM:5.55,MKD:.176,ALL:.11,MDL:.60,UAH:.26,SEK:1};
-async function loadExistingRates(){try{const d=JSON.parse(await readFile("rates.json","utf8"));return {...FALLBACK_RATES,...(d.rates||{})}}catch{return {...FALLBACK_RATES}}}
-function n(v){const p=Number(String(v).replace(",","."));return Number.isFinite(p)?p:NaN}function findValue(data){const st=[{v:data,d:0}];let seen=0;while(st.length){const {v,d}=st.pop();if(++seen>5000)throw Error("too large");if(!v||typeof v!=="object"||d>20)continue;if(!Array.isArray(v)){const ks=Object.keys(v),vk=ks.find(k=>["value","Value","observationValue","ObservationValue"].includes(k));if(vk){const val=n(v[vk]);if(Number.isFinite(val)&&val>0&&val<1000){const dk=ks.find(k=>["date","Date","observationDate","ObservationDate","period","Period"].includes(k));return {value:val,date:dk?String(v[dk]).slice(0,40):""}}}}for(const child of Array.isArray(v)?v:Object.values(v))st.push({v:child,d:d+1})}throw Error("no value")}
-async function fetchRate(series){const safe=String(series).toLowerCase().replace(/[^a-z0-9]/g,"");const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000);try{const r=await fetch(`https://api.riksbank.se/swea/v1/Observations/Latest/${safe}`,{signal:ctrl.signal,headers:{Accept:"application/json"}});if(!r.ok)throw Error(`HTTP ${r.status}`);return findValue(await r.json())}finally{clearTimeout(t)}}
-const rates=await loadExistingRates();const dates=[];const failed=[];await Promise.all(Object.entries(SERIES).map(async([cur,ser])=>{try{const res=await fetchRate(ser);rates[cur]=res.value;if(res.date)dates.push(res.date)}catch(e){failed.push(cur);console.warn(`Could not update ${cur}: ${e.message}`)}}));rates.SEK=1;const unique=[...new Set(dates)].filter(Boolean);await writeFile("rates.json",JSON.stringify({source:"Riksbanken API via GitHub Actions. Övriga valutor använder manuella/sparade standardvärden.",date:unique.length===1?unique[0]:unique.slice(0,3).join(" / "),updatedAt:new Date().toISOString(),rates,failed},null,2)+"
-","utf8");console.log("rates.json updated");
+
+const SERIES = {
+  EUR: "sekeurpmi",
+  DKK: "sekdkkpmi",
+  NOK: "seknokpmi",
+  GBP: "sekgbppmi",
+  CHF: "sekchfpmi",
+  PLN: "sekplnpmi",
+  CZK: "sekczkpmi",
+  HUF: "sekhufpmi"
+};
+
+const FALLBACK_RATES = {
+  EUR: 10.8485,
+  DKK: 1.45183,
+  NOK: 0.94,
+  GBP: 12.75,
+  CHF: 11.55,
+  PLN: 2.55,
+  CZK: 0.44,
+  HUF: 0.028,
+  RON: 2.18,
+  BGN: 5.55,
+  ISK: 0.078,
+  TRY: 0.34,
+  RSD: 0.093,
+  BAM: 5.55,
+  MKD: 0.176,
+  ALL: 0.11,
+  MDL: 0.60,
+  UAH: 0.26,
+  SEK: 1
+};
+
+async function loadExistingRates() {
+  try {
+    const data = JSON.parse(await readFile("rates.json", "utf8"));
+    return { ...FALLBACK_RATES, ...(data.rates || {}) };
+  } catch {
+    return { ...FALLBACK_RATES };
+  }
+}
+
+function parseNumber(value) {
+  const parsed = Number(String(value).replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+function findObservationValue(data) {
+  const stack = [{ value: data, depth: 0 }];
+  let visited = 0;
+
+  while (stack.length > 0) {
+    const { value, depth } = stack.pop();
+    visited += 1;
+
+    if (visited > 5000) throw new Error("API response too large.");
+    if (!value || typeof value !== "object" || depth > 20) continue;
+
+    if (!Array.isArray(value)) {
+      const keys = Object.keys(value);
+      const valueKey = keys.find((key) =>
+        ["value", "Value", "observationValue", "ObservationValue"].includes(key)
+      );
+
+      if (valueKey) {
+        const observationValue = parseNumber(value[valueKey]);
+        if (Number.isFinite(observationValue) && observationValue > 0 && observationValue < 1000) {
+          const dateKey = keys.find((key) =>
+            ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(key)
+          );
+          return {
+            value: observationValue,
+            date: dateKey ? String(value[dateKey]).slice(0, 40) : ""
+          };
+        }
+      }
+    }
+
+    const children = Array.isArray(value) ? value : Object.values(value);
+    for (const child of children) {
+      stack.push({ value: child, depth: depth + 1 });
+    }
+  }
+
+  throw new Error("Could not parse observation value.");
+}
+
+async function fetchRate(seriesId) {
+  const safeSeriesId = String(seriesId).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch(`https://api.riksbank.se/swea/v1/Observations/Latest/${safeSeriesId}`, {
+      signal: controller.signal,
+      headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return findObservationValue(await response.json());
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+const rates = await loadExistingRates();
+const dates = [];
+const failed = [];
+
+await Promise.all(
+  Object.entries(SERIES).map(async ([currency, seriesId]) => {
+    try {
+      const result = await fetchRate(seriesId);
+      rates[currency] = result.value;
+      if (result.date) dates.push(result.date);
+    } catch (error) {
+      failed.push(currency);
+      console.warn(`Could not update ${currency}: ${error.message}`);
+    }
+  })
+);
+
+rates.SEK = 1;
+
+const uniqueDates = [...new Set(dates)].filter(Boolean);
+const payload = {
+  source: "Riksbanken API via GitHub Actions. Övriga valutor använder manuella/sparade standardvärden.",
+  date: uniqueDates.length === 1 ? uniqueDates[0] : uniqueDates.slice(0, 3).join(" / "),
+  updatedAt: new Date().toISOString(),
+  rates,
+  failed
+};
+
+await writeFile("rates.json", JSON.stringify(payload, null, 2) + "\n", "utf8");
+console.log("rates.json updated");
