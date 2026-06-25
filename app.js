@@ -1,19 +1,19 @@
 const EUROPEAN_CURRENCIES = [
-  { code: "EUR", name: "Euro", sek: 10.8485 },
-  { code: "DKK", name: "Dansk krona", sek: 1.45183 },
-  { code: "NOK", name: "Norsk krona", sek: 0.94 },
-  { code: "GBP", name: "Brittiskt pund", sek: 12.75 },
-  { code: "CHF", name: "Schweizisk franc", sek: 11.55 },
-  { code: "PLN", name: "Zloty", sek: 2.55 },
-  { code: "CZK", name: "Tjeckisk krona", sek: 0.44 },
-  { code: "HUF", name: "Forint", sek: 0.028 },
-  { code: "RON", name: "Rumänsk leu", sek: 2.18 },
-  { code: "BGN", name: "Bulgarisk lev", sek: 5.55 },
-  { code: "ISK", name: "Isländsk krona", sek: 0.078 },
-  { code: "TRY", name: "Turkisk lira", sek: 0.34 },
-  { code: "RSD", name: "Serbisk dinar", sek: 0.093 },
-  { code: "BAM", name: "Konvertibel mark", sek: 5.55 },
-  { code: "MKD", name: "Makedonisk denar", sek: 0.176 },
+  { code: "EUR", name: "Euro", sek: 11.069 },
+  { code: "DKK", name: "Dansk krona", sek: 1.4809 },
+  { code: "NOK", name: "Norsk krona", sek: 0.98676 },
+  { code: "GBP", name: "Brittiskt pund", sek: 12.8436 },
+  { code: "CHF", name: "Schweizisk franc", sek: 12.00152 },
+  { code: "PLN", name: "Zloty", sek: 2.58169 },
+  { code: "CZK", name: "Tjeckisk krona", sek: 0.4564 },
+  { code: "HUF", name: "Forint", sek: 0.03113 },
+  { code: "RON", name: "Rumänsk leu", sek: 2.11572 },
+  { code: "BGN", name: "Bulgarisk lev", sek: 5.53124 },
+  { code: "ISK", name: "Isländsk krona", sek: 0.07687 },
+  { code: "TRY", name: "Turkisk lira", sek: 0.20981 },
+  { code: "RSD", name: "Serbisk dinar", sek: 0.094 },
+  { code: "BAM", name: "Konvertibel mark", sek: 5.66 },
+  { code: "MKD", name: "Makedonisk denar", sek: 0.180 },
   { code: "ALL", name: "Albansk lek", sek: 0.11 },
   { code: "MDL", name: "Moldavisk leu", sek: 0.60 },
   { code: "UAH", name: "Ukrainsk hryvnia", sek: 0.26 },
@@ -55,7 +55,7 @@ const DEFAULTS = {
 };
 
 const LIMITS = {
-  pricePerKwh: { min: 0, max: 100, fallback: DEFAULTS.pricePerKwh },
+  pricePerKwh: { min: 0, max: 100000, fallback: DEFAULTS.pricePerKwh },
   fromSoc: { min: 0, max: 100, fallback: DEFAULTS.fromSoc },
   toSoc: { min: 0, max: 100, fallback: DEFAULTS.toSoc },
   usableBatteryKwh: { min: 1, max: 200, fallback: DEFAULTS.usableBatteryKwh },
@@ -392,6 +392,7 @@ function calculate() {
   const sekPerKwh = pricePerKwh * currencyRate;
   const from = boundedNumber(settings.fromSoc, LIMITS.fromSoc);
   const to = boundedNumber(settings.toSoc, LIMITS.toSoc);
+  const socInvalid = to <= from;
   const delta = Math.max(0, to - from);
   const battery = boundedNumber(settings.usableBatteryKwh, LIMITS.usableBatteryKwh);
   const consumption = boundedNumber(settings.consumptionKwh100, LIMITS.consumptionKwh100);
@@ -403,6 +404,9 @@ function calculate() {
   const costPer10KmSek = costPer100KmSek / 10;
   const rangeAddedKm = consumption ? (chargeKwh / consumption) * 100 : 0;
   const car = getSelectedCar();
+
+  const warnEl = document.getElementById("socWarning");
+  if (warnEl) warnEl.hidden = !socInvalid;
 
   setText("selectedCarLabel", car ? car.label : "Egen bil");
   setText("selectedCarMeta", car ? `Användbart batteri: ${num(car.usableBatteryKwh, 1)} kWh · Föreslagen förbrukning: ${num(car.defaultConsumptionKwh100, 1)} kWh/100 km${car.category ? " · " + car.category : ""}` : "");
@@ -424,7 +428,9 @@ function calculate() {
   setText("chargeKwh", `${num(chargeKwh, 1)} kWh`);
   setText("rangeAddedKm", `${num(rangeAddedKm, 0)} km`);
   setText("costPer10KmSek", sek(costPer10KmSek, 2));
-  setText("plainSummary", `Att ladda ${car && car.id !== "custom" ? car.label + " " : ""}från ${num(from, 0)} % till ${num(to, 0)} % kostar cirka ${sek(totalCostSek, 0)} och ger ungefär ${num(rangeAddedKm, 0)} km vid ${num(consumption, 1)} kWh/100 km.`);
+  setText("plainSummary", socInvalid
+    ? `Ange en målnivå som är högre än startnivån (${num(from, 0)} %) för att räkna ut laddkostnaden.`
+    : `Att ladda ${car && car.id !== "custom" ? car.label + " " : ""}från ${num(from, 0)} % till ${num(to, 0)} % kostar cirka ${sek(totalCostSek, 0)} och ger ungefär ${num(rangeAddedKm, 0)} km vid ${num(consumption, 1)} kWh/100 km.`);
 
   updateActiveChips();
 }
