@@ -1,14 +1,20 @@
 import { writeFile, readFile } from "node:fs/promises";
 
-const SERIES = {
-  EUR: "sekeurpmi",
-  DKK: "sekdkkpmi",
-  NOK: "seknokpmi",
-  GBP: "sekgbppmi",
-  CHF: "sekchfpmi",
-  PLN: "sekplnpmi",
-  CZK: "sekczkpmi",
-  HUF: "sekhufpmi"
+const RIKSBANK_GROUP_URL = "https://api.riksbank.se/swea/v1/Observations/Latest/ByGroup/130";
+
+const SERIES_TO_CURRENCY = {
+  SEKEURPMI: "EUR",
+  SEKDKKPMI: "DKK",
+  SEKNOKPMI: "NOK",
+  SEKGBPPMI: "GBP",
+  SEKCHFPMI: "CHF",
+  SEKPLNPMI: "PLN",
+  SEKCZKPMI: "CZK",
+  SEKHUFPMI: "HUF",
+  SEKRONPMI: "RON",
+  SEKBGNPMI: "BGN",
+  SEKISKPMI: "ISK",
+  SEKTRYPMI: "TRY"
 };
 
 const FALLBACK_RATES = {
@@ -47,84 +53,49 @@ function parseNumber(value) {
   return Number.isFinite(parsed) ? parsed : NaN;
 }
 
-function findObservationValue(data) {
-  const stack = [{ value: data, depth: 0 }];
-  let visited = 0;
-
-  while (stack.length > 0) {
-    const { value, depth } = stack.pop();
-    visited += 1;
-
-    if (visited > 5000) throw new Error("API response too large.");
-    if (!value || typeof value !== "object" || depth > 20) continue;
-
-    if (!Array.isArray(value)) {
-      const keys = Object.keys(value);
-      const valueKey = keys.find((key) =>
-        ["value", "Value", "observationValue", "ObservationValue"].includes(key)
-      );
-
-      if (valueKey) {
-        const observationValue = parseNumber(value[valueKey]);
-        if (Number.isFinite(observationValue) && observationValue > 0 && observationValue < 1000) {
-          const dateKey = keys.find((key) =>
-            ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(key)
-          );
-
-          return {
-            value: observationValue,
-            date: dateKey ? String(value[dateKey]).slice(0, 40) : ""
-          };
-        }
-      }
-    }
-
-    const children = Array.isArray(value) ? value : Object.values(value);
-    for (const child of children) {
-      stack.push({ value: child, depth: depth + 1 });
-    }
-  }
-
-  throw new Error("Could not parse observation value.");
-}
-
-async function fetchRate(seriesId) {
-  const safeSeriesId = String(seriesId).toLowerCase().replace(/[^a-z0-9]/g, "");
+async function fetchRiksbankGroup() {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch(`https://api.riksbank.se/swea/v1/Observations/Latest/${safeSeriesId}`, {
+    const response = await fetch(RIKSBANK_GROUP_URL, {
       signal: controller.signal,
       headers: { Accept: "application/json" }
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return findObservationValue(await response.json());
+    if (!response.ok) throw new Error(`Riksbanken API returned HTTP ${response.status}`);
+    const data = await response.json();
+
+    if (!Array.isArray(data)) throw new Error("Unexpected Riksbanken API response format.");
+    return data;
   } finally {
     clearTimeout(timeout);
   }
 }
 
 const rates = await loadExistingRates();
-const dates = [];
-const failed = [];
+const observations = await fetchRiksbankGroup();
 
-await Promise.all(
-  Object.entries(SERIES).map(async ([currency, seriesId]) => {
-    try {
-      const result = await fetchRate(seriesId);
-      rates[currency] = result.value;
-      if (result.date) dates.push(result.date);
-    } catch (error) {
-      failed.push(currency);
-      console.warn(`Could not update ${currency}: ${error.message}`);
-    }
-  })
-);
+const updated = [];
+const dates = [];
+
+for (const observation of observations) {
+  const seriesId = String(observation.seriesId || "").toUpperCase();
+  const currency = SERIES_TO_CURRENCY[seriesId];
+  if (!currency) continue;
+
+  const value = parseNumber(observation.value);
+  if (Number.isFinite(value) && value > 0 && value < 1000) {
+    rates[currency] = value;
+    updated.push(currency);
+    if (observation.date) dates.push(String(observation.date).slice(0, 40));
+  }
+}
 
 rates.SEK = 1;
 
+const expected = Object.values(SERIES_TO_CURRENCY);
+const failed = expected.filter((currency) => !updated.includes(currency));
 const uniqueDates = [...new Set(dates)].filter(Boolean);
 
 const payload = {
@@ -141,4 +112,4 @@ if (failed.length > 0) {
   console.warn(`Finished with fallback values for: ${failed.join(", ")}`);
 }
 
-console.log("rates.json updated");
+console.log(`rates.json updated. Updated currencies: ${updated.join(", ")}`);
