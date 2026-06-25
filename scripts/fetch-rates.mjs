@@ -70,6 +70,7 @@ function findObservationValue(data) {
           const dateKey = keys.find((key) =>
             ["date", "Date", "observationDate", "ObservationDate", "period", "Period"].includes(key)
           );
+
           return {
             value: observationValue,
             date: dateKey ? String(value[dateKey]).slice(0, 40) : ""
@@ -125,6 +126,7 @@ await Promise.all(
 rates.SEK = 1;
 
 const uniqueDates = [...new Set(dates)].filter(Boolean);
+
 const payload = {
   source: "Riksbanken API via GitHub Actions. Övriga valutor använder manuella/sparade standardvärden.",
   date: uniqueDates.length === 1 ? uniqueDates[0] : uniqueDates.slice(0, 3).join(" / "),
@@ -134,4 +136,9 @@ const payload = {
 };
 
 await writeFile("rates.json", JSON.stringify(payload, null, 2) + "\n", "utf8");
+
+if (failed.length > 0) {
+  console.warn(`Finished with fallback values for: ${failed.join(", ")}`);
+}
+
 console.log("rates.json updated");
