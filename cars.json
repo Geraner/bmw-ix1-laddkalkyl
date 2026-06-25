@@ -3,9 +3,8 @@
     "id": "custom",
     "label": "Egen bil / eget batteri",
     "usableBatteryKwh": 64.7,
-    "defaultConsumptionKwh100": 20,
-    "category": "Egen inställning",
-    "note": "Ändra batteri och förbrukning manuellt.",
+    "defaultConsumptionKwh100": 20.0,
+    "category": "Eget värde",
     "consumptionSource": "Eget värde",
     "consumptionSourceNote": "Manuellt angiven förbrukning"
   },
@@ -50,9 +49,9 @@
     "consumptionSourceNote": "EVDB Real Range / Vehicle Consumption"
   },
   {
-    "id": "bmw-ix3-40",
-    "label": "BMW iX3 40",
-    "usableBatteryKwh": 82.6,
+    "id": "bmw-ix3-50-xdrive",
+    "label": "BMW iX3 50 xDrive",
+    "usableBatteryKwh": 108.7,
     "defaultConsumptionKwh100": 17.1,
     "category": "SUV",
     "consumptionSource": "EV Database",
