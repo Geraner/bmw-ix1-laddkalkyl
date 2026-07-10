@@ -7,6 +7,7 @@ Statisk GitHub Pages-app för att räkna laddkostnad för BMW i-modeller i Europ
 - `index.html` – sidans HTML
 - `style.css` – design
 - `app.js` – kalkylen och app-logiken
+- `language.js` – språkval svenska/engelska
 - `cars.json` – BMW-modeller, batteristorlek och EVDB-baserad standardförbrukning
 - `rates.json` – valutakurser som appen läser
 - `manifest.json` – PWA-inställningar
@@ -28,3 +29,7 @@ För att köra manuellt:
 ## Förbrukningsvärden
 
 Standardförbrukning per BMW-modell baseras på EV Database där värde finns. Användaren kan alltid ändra förbrukningen manuellt.
+
+## Språkval
+
+Appen har en språk-dropdown högst upp. Svenska är standard, men användaren kan byta till engelska. Valet sparas lokalt i webbläsaren.

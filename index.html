@@ -21,15 +21,26 @@
     <header class="hero">
       <div class="brand-mark" aria-hidden="true">⚡</div>
       <div>
-        <div class="badge">BMW i-modeller • Laddkalkyl Europa</div>
-        <h1>BMW laddkostnadskalkylator</h1>
-        <p>Välj BMW i-modell, valuta, laddpris och SoC. Kalkylen visar total laddkostnad, pris per 100 km och pris per mil.</p>
+        <div class="badge" data-i18n="badge">BMW i-modeller • Laddkalkyl Europa</div>
+        <h1 data-i18n="title">BMW laddkostnadskalkylator</h1>
+        <p data-i18n="subtitle">Välj BMW i-modell, valuta, laddpris och SoC. Kalkylen visar total laddkostnad, pris per 100 km och pris per mil.</p>
       </div>
     </header>
 
+    <section class="card language-card">
+      <h2 data-i18n="languageTitle">Språk</h2>
+      <label>
+        <span data-i18n="languageLabel">Välj språk</span>
+        <select id="languageSelect">
+          <option value="sv">Svenska</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+    </section>
+
     <section class="card step-card">
-      <h2>1. Välj din bilmodell</h2>
-      <label>Bilmodell
+      <h2 data-i18n="stepCar">1. Välj din bilmodell</h2>
+      <label><span data-i18n="carModelLabel">Bilmodell</span>
         <select id="carModel"></select>
       </label>
       <div class="car-info">
@@ -40,16 +51,16 @@
           <p id="selectedCarSource" class="source-note">Källa för förbrukning: EV Database · EVDB Real Range / Vehicle Consumption</p>
         </div>
       </div>
-      <p class="hint">Batterivärdena är uppskattade användbara värden för laddberäkning. Standardförbrukning per modell baseras på EV Database där värde finns, men bör justeras efter faktisk körning.</p>
+      <p class="hint" data-i18n="carHint">Batterivärdena är uppskattade användbara värden för laddberäkning. Standardförbrukning per modell baseras på EV Database där värde finns, men bör justeras efter faktisk körning.</p>
     </section>
 
     <section class="card step-card">
-      <h2>2. Vad kostar laddaren?</h2>
+      <h2 data-i18n="stepPrice">2. Vad kostar laddaren?</h2>
       <div class="form-grid">
-        <label>Valuta
+        <label><span data-i18n="currencyLabel">Valuta</span>
           <select id="currency"></select>
         </label>
-        <label>Pris per kWh
+        <label><span data-i18n="priceLabel">Pris per kWh</span>
           <div class="input-suffix">
             <input id="pricePerKwh" type="number" min="0" max="100" step="0.01" inputmode="decimal">
             <span id="priceCurrencySuffix">EUR</span>
@@ -65,25 +76,25 @@
         <button type="button" class="chip price-chip" data-currency="EUR" data-price="0.69">0,69 EUR</button>
       </div>
       <div class="compact-info">
-        <span>Omräknat laddpris</span>
+        <span data-i18n="convertedPrice">Omräknat laddpris</span>
         <strong id="sekPerKwh">–</strong>
         <small id="currencyRateText">–</small>
       </div>
     </section>
 
     <section class="card step-card">
-      <h2>3. Hur mycket ska du ladda?</h2>
+      <h2 data-i18n="stepCharge">3. Hur mycket ska du ladda?</h2>
       <div class="form-grid">
-        <label>Nuvarande SoC
+        <label><span data-i18n="fromSocLabel">Nuvarande SoC</span>
           <div class="input-suffix"><input id="fromSoc" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
         </label>
-        <label>Ladda till
+        <label><span data-i18n="toSocLabel">Ladda till</span>
           <div class="input-suffix"><input id="toSoc" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
         </label>
       </div>
       <div class="soc-grid">
         <div>
-          <div class="quick-label">Snabbval – startnivå</div>
+          <div class="quick-label" data-i18n="quickStart">Snabbval – startnivå</div>
           <div class="quick-row">
             <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="10">10%</button>
             <button type="button" class="chip soc-chip" data-target="fromSoc" data-value="20">20%</button>
@@ -92,7 +103,7 @@
           </div>
         </div>
         <div>
-          <div class="quick-label">Snabbval – målnivå</div>
+          <div class="quick-label" data-i18n="quickTarget">Snabbval – målnivå</div>
           <div class="quick-row">
             <button type="button" class="chip soc-chip" data-target="toSoc" data-value="50">50%</button>
             <button type="button" class="chip soc-chip" data-target="toSoc" data-value="60">60%</button>
@@ -106,22 +117,22 @@
     </section>
 
     <section class="card step-card">
-      <h2>4. Batteri och förbrukning</h2>
+      <h2 data-i18n="stepBattery">4. Batteri och förbrukning</h2>
       <div class="form-grid">
-        <label>Användbart batteri kWh
+        <label><span data-i18n="batteryLabel">Användbart batteri kWh</span>
           <div class="input-suffix"><input id="usableBatteryKwh" type="number" min="1" max="200" step="0.1" inputmode="decimal"><span>kWh</span></div>
         </label>
-        <label>Förbrukning kWh/100 km
+        <label><span data-i18n="consumptionLabel">Förbrukning kWh/100 km</span>
           <div class="input-suffix"><input id="consumptionKwh100" type="number" min="1" max="100" step="0.1" inputmode="decimal"><span>kWh/100 km</span></div>
         </label>
       </div>
-      <button id="resetCarValuesBtn" class="secondary wide-button" type="button">Återställ värden från vald bilmodell</button>
+      <button id="resetCarValuesBtn" class="secondary wide-button" type="button" data-i18n="resetCarValues">Återställ värden från vald bilmodell</button>
     </section>
 
     <section class="result-hero">
       <div class="bolt" aria-hidden="true">⚡</div>
       <div>
-        <span>Total laddkostnad</span>
+        <span data-i18n="totalCost">Total laddkostnad</span>
         <strong id="totalCostSek">–</strong>
         <small id="totalCostDetail">–</small>
         <small id="totalCostLocal">–</small>
@@ -129,10 +140,10 @@
     </section>
 
     <section class="metric-grid">
-      <div class="metric"><div class="metric-icon green">▯</div><div><span>Energi att ladda</span><strong id="chargeKwh">–</strong></div></div>
-      <div class="metric"><div class="metric-icon blue">↗</div><div><span>Tillförd räckvidd</span><strong id="rangeAddedKm">–</strong></div></div>
-      <div class="metric"><div class="metric-icon purple">⌁</div><div><span>Kostnad per 100 km</span><strong id="costPer100KmSek">–</strong><small id="costPer100Detail">–</small></div></div>
-      <div class="metric"><div class="metric-icon orange">≈</div><div><span>Pris per mil</span><strong id="costPer10KmSek">–</strong></div></div>
+      <div class="metric"><div class="metric-icon green">▯</div><div><span data-i18n="energyToCharge">Energi att ladda</span><strong id="chargeKwh">–</strong></div></div>
+      <div class="metric"><div class="metric-icon blue">↗</div><div><span data-i18n="addedRange">Tillförd räckvidd</span><strong id="rangeAddedKm">–</strong></div></div>
+      <div class="metric"><div class="metric-icon purple">⌁</div><div><span data-i18n="costPer100">Kostnad per 100 km</span><strong id="costPer100KmSek">–</strong><small id="costPer100Detail">–</small></div></div>
+      <div class="metric"><div class="metric-icon orange">≈</div><div><span data-i18n="costPer10">Pris per mil</span><strong id="costPer10KmSek">–</strong></div></div>
     </section>
 
     <section class="summary-box">
@@ -141,7 +152,7 @@
     </section>
 
     <details class="card collapsible">
-      <summary><span>Valutakurser</span><small>Klicka för att visa eller dölja aktuella kurser</small></summary>
+      <summary><span data-i18n="exchangeRates">Valutakurser</span><small data-i18n="exchangeRatesSmall">Klicka för att visa eller dölja aktuella kurser</small></summary>
       <div class="collapsible-content">
         <div class="card-header">
           <p id="rateStatus">Valutakurser sparas lokalt i webbläsaren.</p>
@@ -154,21 +165,21 @@
           <div class="mini"><span>GBP</span><strong id="gbpMini">–</strong></div>
         </div>
         <div class="actions rates-actions">
-          <button id="fetchRatesBtn" class="primary" type="button">Hämta kurser</button>
-          <button id="resetBtn" class="secondary" type="button">Återställ allt</button>
+          <button id="fetchRatesBtn" class="primary" type="button" data-i18n="fetchRates">Hämta kurser</button>
+          <button id="resetBtn" class="secondary" type="button" data-i18n="resetAll">Återställ allt</button>
         </div>
       </div>
     </details>
 
     <details class="card collapsible">
-      <summary><span>Manuella valutakurser</span><small>Klicka för att visa eller ändra sparade kurser</small></summary>
+      <summary><span data-i18n="manualRates">Manuella valutakurser</span><small data-i18n="manualRatesSmall">Klicka för att visa eller ändra sparade kurser</small></summary>
       <div class="collapsible-content">
-        <p class="hint">Om automatisk hämtning inte fungerar kan du ändra kurserna här. Alla värden sparas lokalt i webbläsaren.</p>
+        <p class="hint" data-i18n="manualRatesHint">Om automatisk hämtning inte fungerar kan du ändra kurserna här. Alla värden sparas lokalt i webbläsaren.</p>
         <div id="manualRates" class="manual-grid"></div>
       </div>
     </details>
 
-    <footer>
+    <footer data-i18n="footer">
       Beräkningarna är ungefärliga. Batterivärden, laddförluster, kortpåslag, parkeringsavgifter, blockeringstaxa och operatörernas prisändringar kan påverka slutkostnaden.
     </footer>
   </main>

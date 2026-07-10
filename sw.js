@@ -1,4 +1,4 @@
-const CACHE_NAME = "bmw-i-laddkalkyl-v11";
+const CACHE_NAME = "bmw-i-laddkalkyl-v12";
 const ASSETS = [
   "./",
   "./index.html",
