@@ -8,7 +8,6 @@
   <title>BMW laddkostnadskalkylator</title>
   <meta name="description" content="Laddkostnadskalkylator för BMW i-modeller. Räkna om europeiska laddpriser till SEK och beräkna total laddkostnad samt pris per mil.">
   <meta name="theme-color" content="#071f4f">
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="BMW laddkalkyl">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -52,7 +51,7 @@
         </label>
         <label>Pris per kWh
           <div class="input-suffix">
-            <input id="pricePerKwh" type="number" min="0" max="100000" step="0.01" inputmode="decimal">
+            <input id="pricePerKwh" type="number" min="0" max="100" step="0.01" inputmode="decimal">
             <span id="priceCurrencySuffix">EUR</span>
           </div>
         </label>
@@ -82,7 +81,6 @@
           <div class="input-suffix"><input id="toSoc" type="number" min="0" max="100" step="1" inputmode="decimal"><span>%</span></div>
         </label>
       </div>
-      <p id="socWarning" class="soc-warning" hidden>Målnivån måste vara högre än startnivån för att beräkna en laddning.</p>
       <div class="soc-grid">
         <div>
           <div class="quick-label">Snabbval – startnivå</div>
@@ -175,5 +173,6 @@
     </footer>
   </main>
   <script src="app.js"></script>
+  <script src="language.js"></script>
 </body>
 </html>
